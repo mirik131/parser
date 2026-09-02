@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import time
+import re
+from concurrent.futures import ThreadPoolExecutor
 
 BASE_URL = "https://books.toscrape.com/"
 PAGES = 3
@@ -11,6 +13,7 @@ headers = {
 }
 
 data = []
+raw_books = [] 
 
 print(f"парсинг")
 
@@ -48,11 +51,29 @@ for page in range(1, PAGES + 1):
                     link = "catalogue/" + link
                 link = BASE_URL + link
 
-            data.append([title, price, link, "", ""])
+            raw_books.append([title, price, link])
         except:
             continue
 
-    time.sleep(1)
+    time.sleep(0.2)
+
+def get_avail(item):
+    title, price, link = item
+    try:
+        rb = requests.get(link, headers=headers, timeout=10)
+        rb.encoding = "utf-8"
+        sb = BeautifulSoup(rb.text, "html.parser")
+        atag = sb.find("p", class_="instock availability")
+        atext = atag.get_text(strip=True) if atag else ""
+        m = re.search(r"(\d+)", atext)
+        avail = m.group(1) if m else ""
+    except:
+        avail = ""
+    return [title, price, link, avail, ""]
+
+with ThreadPoolExecutor(max_workers=10) as ex:
+    for row in ex.map(get_avail, raw_books):
+        data.append(row)
 
 with open("output.csv", "w", newline="", encoding="utf-8-sig") as f:
     w = csv.writer(f)
