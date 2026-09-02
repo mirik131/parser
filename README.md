@@ -5,7 +5,7 @@ python parser.py
 пройдется по 3 страницам соберет книги
 
 собирает по-
-title,price,link,date,location-date и location пустые, их на сайте нет но в тз надо было
+title,price,link
 
 файлы:
 parser.py-сам код
