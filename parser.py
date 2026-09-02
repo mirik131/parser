@@ -23,6 +23,7 @@ for page in range(1, PAGES + 1):
     try:
         r = requests.get(url, headers=headers, timeout=10)
         r.raise_for_status()
+        r.encoding = "utf-8"
     except Exception as e:
         print(f"Ошибка")
         continue
@@ -38,6 +39,7 @@ for page in range(1, PAGES + 1):
         try:
             title = b.h3.a["title"]
             price = b.find("p", class_="price_color").text.strip()
+            price = price.replace("Â£", "£").replace("Â", "")
             link = b.h3.a["href"]
 
             link = link.replace("../../../", "")
